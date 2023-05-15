@@ -2,13 +2,13 @@
 import styles from './page.module.css'
 import { useRef } from 'react';
 
-export default function Home() {
+export default function Index() {
 
-  let refs = []
-  let currentIndex = 0;
   let steps = 0;
-  let maxNumberOfImages = 8;
+  let currentIndex = 0;
   let nbOfImages = 0;
+  let maxNumberOfImages = 8;
+  let refs = [];
 
   const manageMouseMove = (e) => {
     const { clientX, clientY, movementX, movementY } = e;
@@ -16,18 +16,17 @@ export default function Home() {
     steps+= Math.abs(movementX) + Math.abs(movementY);
 
     if(steps >= currentIndex * 150){
-      moveImage(clientX, clientY)
-    }
+      moveImage(clientX, clientY);
 
-    if(nbOfImages == maxNumberOfImages){
-      removeImage();
+      if(nbOfImages == maxNumberOfImages){
+        removeImage();
+      }
     }
-
+    
     if(currentIndex == refs.length){
       currentIndex = 0;
-      steps = 0;
+      steps = -150;
     }
-
   }
 
   const moveImage = (x, y) => {
@@ -35,37 +34,44 @@ export default function Home() {
     currentImage.style.left = x + "px";
     currentImage.style.top = y + "px";
     currentImage.style.display = "block";
-    currentImage.style.zIndex = 1;
-    resetZIndex();
     currentIndex++;
     nbOfImages++;
+    setZIndex()
   }
 
-  const resetZIndex = () => {
-    for(let i = 0 ; i < refs.length ; i++){
-      if(i != currentIndex){
-        refs[i].current.style.zIndex = 0;
-      }
+  const setZIndex = () => {
+    const images = getCurrentImages();
+    for(let i = 0 ; i < images.length ; i++){
+      images[i].style.zIndex = i;
     }
   }
 
   const removeImage = () => {
-    let indexToRemove = currentIndex - maxNumberOfImages
-    if(indexToRemove < 0) indexToRemove = indexToRemove + refs.length
-    const currentImage = refs[indexToRemove].current;
-    currentImage.style.display = "none";
+    const images = getCurrentImages();
+    images[0].style.display = "none";
     nbOfImages--;
   }
 
+  const getCurrentImages = () => {
+    let images = []
+    let indexOfFirst = currentIndex - nbOfImages;
+    for(let i = indexOfFirst ; i < currentIndex ; i++){
+      let targetIndex = i;
+      if(targetIndex < 0) targetIndex += refs.length
+      images.push(refs[targetIndex].current);
+    }
+    return images;
+  }
+
   return (
-    <main onMouseMove={(e) => {manageMouseMove(e)}} className={styles.main}>
-       {
+    <div onMouseMove={(e) => {manageMouseMove(e)}} className={styles.main}>
+      {
         [...Array(19).keys()].map( (_, index) => {
           const ref = useRef(null);
           refs.push(ref)
-          return <img key={index} onClick={() => {console.log(refs)}} ref={ref} src={`/images/${index}.jpg`}></img>
+          return <img onClick={() => {console.log(refs)}} ref={ref} src={`/images/${index}.jpg`}></img>
         })
       }
-    </main>
+    </div>
   )
 }
